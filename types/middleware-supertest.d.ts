@@ -6,53 +6,67 @@ import type * as supertest from "supertest";
 export const mwsupertest: (app: RequestHandler) => MWSuperTest;
 
 /**
- * Testing Express.js RequestHandler middlewares both on server-side and client-side
+ * Test an Express.js `RequestHandler` middleware on both the server side
+ * and the client side in a single chain.
  */
-interface MWSuperTest {
+export interface MWSuperTest {
+    /**
+     * Mounts an additional middleware before the handler under test, scoped
+     * to the agent built by this `MWSuperTest` instance.
+     */
     use(mw: RequestHandler): this;
 
     /**
-     * defines a test function to test the response body as a `string` on server-side.
+     * Registers a server-side check that runs against the response body
+     * decoded as a UTF-8 `string`.
      */
     getString(checker: (str: string) => (any | Promise<any>)): this;
 
     /**
-     * defines a test function to test the response body as a `Buffer` on server-side.
+     * Registers a server-side check that runs against the response body
+     * as a raw `Buffer`.
      */
     getBuffer(checker: (buf: Buffer) => (any | Promise<any>)): this;
 
     /**
-     * defines a test function to test the response object aka `res` on server-side.
+     * Registers a server-side check that runs against the inbound `req`
+     * object once Express has finished routing it.
      */
     getRequest(checker: (req: Request) => (any | Promise<any>)): this;
 
     /**
-     * defines a test function to test the request object aka `req` on server-side.
+     * Registers a server-side check that runs against the outbound `res`
+     * object just before the response is flushed to the client.
      */
     getResponse(checker: (res: Response) => (any | Promise<any>)): this;
 
     /**
-     * perform a HTTP `DELETE` request and returns a SuperTest object to continue tests on client-side.
+     * Performs an HTTP `DELETE` request and returns a SuperTest object
+     * so further client-side assertions can chain on.
      */
     delete(url: string): supertest.Test;
 
     /**
-     * perform a HTTP `GET` request and returns a SuperTest object to continue tests on client-side.
+     * Performs an HTTP `GET` request and returns a SuperTest object so
+     * further client-side assertions can chain on.
      */
     get(url: string): supertest.Test;
 
     /**
-     * perform a HTTP `HEAD` request and returns a SuperTest object to continue tests on client-side.
+     * Performs an HTTP `HEAD` request and returns a SuperTest object so
+     * further client-side assertions can chain on.
      */
     head(url: string): supertest.Test;
 
     /**
-     * perform a HTTP `POST` request and returns a SuperTest object to continue tests on client-side.
+     * Performs an HTTP `POST` request and returns a SuperTest object so
+     * further client-side assertions can chain on.
      */
     post(url: string): supertest.Test;
 
     /**
-     * perform a HTTP `PUT` request and returns a SuperTest object to continue tests on client-side.
+     * Performs an HTTP `PUT` request and returns a SuperTest object so
+     * further client-side assertions can chain on.
      */
     put(url: string): supertest.Test;
 }

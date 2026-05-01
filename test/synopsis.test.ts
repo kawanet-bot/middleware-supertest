@@ -1,14 +1,15 @@
-#!/usr/bin/env mocha -R spec
+import {strict as assert} from "node:assert";
+import {describe, it} from "node:test";
+import {fileURLToPath} from "node:url";
+import express from "express";
+import type {Request, Response} from "express";
 
-import {Request, Response} from "express";
-import {mwsupertest} from "../";
+import {mwsupertest} from "../lib/middleware-supertest.ts";
 
-const TITLE = __filename.split("/").pop();
+const TITLE = fileURLToPath(import.meta.url).split("/").pop();
 
 ////////////////////////////////////////////////
 
-const assert = require("assert").strict;
-const express = require("express");
 // const {mwsupertest} = require("middleware-supertest");
 
 const app = express();

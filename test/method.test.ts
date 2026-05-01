@@ -1,11 +1,11 @@
-#!/usr/bin/env mocha -R spec
+import {describe, it} from "node:test";
+import {fileURLToPath} from "node:url";
+import express from "express";
+import type {RequestHandler} from "express";
 
-import * as express from "express";
+import {mwsupertest} from "../lib/middleware-supertest.ts";
 
-import {mwsupertest} from "../";
-import {RequestHandler} from "express";
-
-const TITLE = __filename.split("/").pop();
+const TITLE = fileURLToPath(import.meta.url).split("/").pop();
 
 describe(TITLE, () => {
     const app = express();

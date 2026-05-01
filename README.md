@@ -1,6 +1,6 @@
 # middleware-supertest
 
-Testing Express.js RequestHandler middlewares both on server-side and client-side
+Test an Express.js `RequestHandler` middleware on both the server side and the client side in a single chain.
 
 [![Node.js CI](https://github.com/kawanet/middleware-supertest/workflows/Node.js%20CI/badge.svg?branch=master)](https://github.com/kawanet/middleware-supertest/actions/)
 [![npm version](https://badge.fury.io/js/middleware-supertest.svg)](https://www.npmjs.com/package/middleware-supertest)
@@ -22,7 +22,7 @@ app.use((req, res) => {
     res.send("OK");
 })
 
-// your Mocha test
+// your test
 
 describe("mwsupertest", async () => {
     it("/home", async () => {
@@ -32,9 +32,9 @@ describe("mwsupertest", async () => {
             .getResponse(res => assert.equal(res.getHeader("x-foo"), "FOO"))
             .getString(str => assert.equal(str, "OK"))
             .getBuffer(buf => assert.equal(buf.length, 2))
-            // abobe tests runs on server-side
+            // the assertions above run on the server side
             .get("/home")
-            // below tests runs on client-side
+            // the assertions below run on the client side
             .expect(res => assert.equal(res.status, 200))
             .expect(res => assert.equal(res.header["x-foo"], "FOO"))
             .expect(res => assert.equal(res.text, "OK"));
@@ -44,9 +44,9 @@ describe("mwsupertest", async () => {
 
 ## METHODS
 
-See TypeScript declaration
+See the TypeScript declaration
 [middleware-supertest.d.ts](https://github.com/kawanet/middleware-supertest/blob/master/types/middleware-supertest.d.ts)
-for more detail.
+for full details.
 
 ## SEE ALSO
 
@@ -58,7 +58,7 @@ for more detail.
 
 The MIT License (MIT)
 
-Copyright (c) 2020-2022 Yusuke Kawasaki
+Copyright (c) 2020-2026 Yusuke Kawasaki
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
