@@ -9,7 +9,8 @@ import type * as types from "../types/middleware-supertest.d.ts";
 export const mwsupertest: typeof types.mwsupertest = app => new MWSuperTest(app);
 
 /**
- * Testing Express.js RequestHandler middlewares both on server-side and client-side
+ * Test an Express.js `RequestHandler` middleware on both the server side
+ * and the client side in a single chain.
  */
 
 class MWSuperTest implements types.MWSuperTest {
