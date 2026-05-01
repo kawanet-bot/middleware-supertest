@@ -8,7 +8,7 @@ export const mwsupertest: (app: RequestHandler) => MWSuperTest;
 /**
  * Testing Express.js RequestHandler middlewares both on server-side and client-side
  */
-interface MWSuperTest {
+export interface MWSuperTest {
     use(mw: RequestHandler): this;
 
     /**

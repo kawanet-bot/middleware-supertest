@@ -1,10 +1,10 @@
 // middleware-supertest.ts
 
-import * as express from "express";
+import express from "express";
 import type {Request, RequestHandler, Response} from "express";
 import {responseHandler} from "express-intercept";
-import * as supertest from "supertest";
-import type * as types from "../";
+import supertest from "supertest";
+import type * as types from "../types/middleware-supertest.d.ts";
 
 export const mwsupertest: typeof types.mwsupertest = app => new MWSuperTest(app);
 
@@ -15,9 +15,10 @@ export const mwsupertest: typeof types.mwsupertest = app => new MWSuperTest(app)
 class MWSuperTest implements types.MWSuperTest {
     private _agent: supertest.SuperTest<any>;
     private handlers = express.Router();
+    private readonly app: RequestHandler;
 
-    constructor(private app: RequestHandler) {
-        //
+    constructor(app: RequestHandler) {
+        this.app = app;
     }
 
     private agent() {
