@@ -1,34 +1,27 @@
-SRC := $(wildcard ../lib/*.ts ../types/*.ts)
+SRC   := $(wildcard ../lib/*.ts)
+TYPES := $(wildcard ../types/*.d.ts)
 BUILDER_SRC := $(wildcard ./*.ts)
 
-PKG_DST := ../dist/package.json
 MJS_DST := ../dist/middleware-supertest.mjs
 CJS_DST := ../dist/middleware-supertest.cjs
 
 MJS_CONFIG := ./rollup-mjs.config.ts
 CJS_CONFIG := ./rollup-cjs.config.ts
 
-# The wrapper itself is small (~3 KB). Anything noticeably larger means an
-# accidental bundling of an external dependency or a Node built-in — fail
-# the build so it cannot slip in.
+# The wrapper itself is small (~3 KB). If it gets significantly larger, it
+# might indicate an accidental inclusion of an external dependency or a
+# Node.js built-in.
 MAX_BYTES := 10000
 
-# Every named export the package documents must survive the round trip
-# through both CJS and ESM bundles. List them once and assert in both
-# smoke checks below.
+# Documentation-specified named exports that must be verified in the bundles.
 NAMED_EXPORTS := mwsupertest
 
-ALL := $(MJS_DST) $(CJS_DST) $(PKG_DST)
+ALL := $(MJS_DST) $(CJS_DST)
 
 ####
 
+# Build all artifacts.
 all: $(ALL)
-
-$(PKG_DST):
-	@mkdir -p $(dir $@)
-	echo '{"type":"commonjs"}' > $@
-	@ls -l $@
-	@echo ""
 
 $(MJS_DST): $(MJS_CONFIG) $(SRC) $(BUILDER_SRC)
 	@mkdir -p $(dir $@)
@@ -44,17 +37,33 @@ $(CJS_DST): $(CJS_CONFIG) $(SRC) $(BUILDER_SRC)
 	@ls -l $@
 	@echo ""
 
+# Verify the bundles by importing/requiring the package itself.
+# This ensures that the public entrypoints (exports/main) are correctly configured.
+# Note: process.argv.slice(1) is used because node -e 'code' arg1 arg2
+# results in process.argv = ['node', 'arg1', 'arg2'].
+smoke: all
+	@# MJS smoke test via public entrypoint
+	cd .. && node --input-type=module -e 'const m = await import("middleware-supertest"); for (const k of process.argv.slice(1)) { if (typeof m[k] !== "function") { console.error("missing MJS export:", k); process.exit(1); } console.log("MJS export OK:", k); }' $(NAMED_EXPORTS)
+	@# CJS smoke test via public entrypoint
+	cd .. && node --input-type=commonjs -e 'const m = require("middleware-supertest"); for (const k of process.argv.slice(1)) { if (typeof m[k] !== "function") { console.error("missing CJS export:", k); process.exit(1); } console.log("CJS export OK:", k); }' $(NAMED_EXPORTS)
+
 ####
 
-# Build, type-check, smoke-check that both bundles expose every named
-# export, and run the node:test suite against the source.
-test: all
+# Build, run smoke tests, and conditionally run full tests (tsc and node:test).
+# 1. Skip on Node.js 20 (already EOL).
+# 2. Skip during 'npm install' (npm_command=install) to prevent redundant tests in CI and local dev.
+# Informative messages are shown when skipping.
+test: all smoke $(TYPES)
+	@node -v | grep -qv "^v20" || echo "Node 20 detected: skipping full tests."
+	@ [ "$$npm_command" != "install" ] || echo "npm install detected: skipping full tests."
+	@node -v | grep -q "^v20" || [ "$$npm_command" = "install" ] || $(MAKE) test-ts
+
+# Actual test commands requiring Node.js 22+.
+test-ts:
 	../node_modules/.bin/tsc --noEmit
-	cd .. && node -e 'const m = require("./dist/middleware-supertest.cjs"); for (const k of "$(NAMED_EXPORTS)".split(" ")) if (typeof m[k] !== "function") { console.error("missing CJS export:", k); process.exit(1); } console.log("CJS smoke OK")'
-	cd .. && node --input-type=module -e 'const m = await import("./dist/middleware-supertest.mjs"); for (const k of "$(NAMED_EXPORTS)".split(" ")) if (typeof m[k] !== "function") { console.error("missing MJS export:", k); process.exit(1); } console.log("MJS smoke OK")'
 	cd .. && node --test test/*.test.ts
 
 clean:
 	/bin/rm -fr $(ALL)
 
-.PHONY: all clean test
+.PHONY: all clean test smoke test-ts
