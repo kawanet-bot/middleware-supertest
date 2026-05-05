@@ -1,11 +1,10 @@
 import {strict as assert} from "node:assert";
 import {describe, it} from "node:test";
-import type {RequestHandler} from "express";
+import type {Express, RequestHandler} from "express";
 
 import {mwsupertest} from "../../lib/middleware-supertest.ts";
-import type {ExpressFactory} from "./util.ts";
 
-export function runStatusTests(label: string, express: ExpressFactory): void {
+export function runStatusTests(label: string, express: () => Express): void {
     describe(`${label}: status`, () => {
         const app = (status: number) => {
             const handler: RequestHandler = (req, res) => {
