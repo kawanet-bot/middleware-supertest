@@ -3,6 +3,8 @@
 import type {Request, RequestHandler, Response} from "express";
 import type * as supertest from "supertest";
 
+export {} // external module indicator
+
 export const mwsupertest: (app: RequestHandler) => MWSuperTest;
 
 /**
