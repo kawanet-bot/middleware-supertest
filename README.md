@@ -2,8 +2,8 @@
 
 Test an Express.js `RequestHandler` middleware on both the server side and the client side in a single chain.
 
-[![Node.js CI](https://github.com/kawanet/middleware-supertest/workflows/Node.js%20CI/badge.svg?branch=master)](https://github.com/kawanet/middleware-supertest/actions/)
-[![npm version](https://badge.fury.io/js/middleware-supertest.svg)](https://www.npmjs.com/package/middleware-supertest)
+[![Node.js CI](https://github.com/kawanet/middleware-supertest/actions/workflows/nodejs.yml/badge.svg?branch=master)](https://github.com/kawanet/middleware-supertest/actions/)
+[![npm version](https://img.shields.io/npm/v/middleware-supertest)](https://www.npmjs.com/package/middleware-supertest)
 
 ## SYNOPSIS
 
