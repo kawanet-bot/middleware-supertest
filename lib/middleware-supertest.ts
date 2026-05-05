@@ -4,7 +4,7 @@ import type {IncomingMessage, ServerResponse} from "node:http";
 import type {Express, Request, Response} from "express";
 import {responseHandler} from "express-intercept";
 import supertest from "supertest";
-import type * as types from "../types/middleware-supertest.d.ts";
+import type * as types from "middleware-supertest";
 
 export const mwsupertest: typeof types.mwsupertest = app => new MWSuperTest(app);
 
