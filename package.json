@@ -38,11 +38,9 @@
   },
   "exports": {
     ".": {
+      "types": "./types/middleware-supertest.d.ts",
       "require": "./dist/middleware-supertest.cjs",
-      "import": {
-        "types": "./types/middleware-supertest.d.ts",
-        "default": "./dist/middleware-supertest.mjs"
-      }
+      "import": "./dist/middleware-supertest.mjs"
     }
   },
   "files": [
