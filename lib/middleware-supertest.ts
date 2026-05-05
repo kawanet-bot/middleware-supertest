@@ -1,5 +1,6 @@
 // middleware-supertest.ts
 
+import type {IncomingMessage, ServerResponse} from "node:http";
 import type {Request, RequestHandler, Response} from "express";
 import {responseHandler} from "express-intercept";
 import supertest from "supertest";
@@ -13,7 +14,7 @@ export const mwsupertest: typeof types.mwsupertest = app => new MWSuperTest(app)
  */
 
 class MWSuperTest implements types.MWSuperTest {
-    private _agent: supertest.SuperTest<any>;
+    private _agent: supertest.Agent;
     private chain: RequestHandler[] = [];
     private readonly app: RequestHandler;
 
@@ -32,8 +33,13 @@ class MWSuperTest implements types.MWSuperTest {
         // handler all satisfy. The version of Express used by the consumer
         // never enters this module.
         const stack: RequestHandler[] = [...this.chain, this.app];
-        const composed: RequestHandler = (req, res) => {
-            runChain(stack, req, res, (err?: any) => {
+        // supertest expects a 2-arg RequestListener (`(req, res) => void`),
+        // which is what `http.createServer` will hand us anyway. Internally
+        // we treat the same `req` / `res` as Express objects because the
+        // consumer's app — running as the last entry of the stack — is the
+        // one that decorates them with the Express prototype.
+        const composed = (req: IncomingMessage, res: ServerResponse) => {
+            runChain(stack, req as Request, res as Response, (err?: any) => {
                 // Fallback when neither the chain nor the app produced a
                 // response. This mirrors the minimal behaviour of the
                 // `finalhandler` package that Express attaches when you call
