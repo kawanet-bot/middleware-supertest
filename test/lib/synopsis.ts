@@ -30,7 +30,7 @@ export function runSynopsisTests(label: string, express: ExpressFactory): void {
                 .getResponse(res => assert.equal(res.getHeader("x-foo"), "FOO"))
                 .getString(str => assert.equal(str, "OK"))
                 .getBuffer(buf => assert.equal(buf.length, 2))
-                // abobe tests runs on server-side
+                // above tests runs on server-side
                 .get("/home")
                 // below tests runs on client-side
                 .expect(res => assert.equal(res.status, 200))

@@ -156,6 +156,11 @@ class MWSuperTest implements types.MWSuperTest {
  * actually relies on (sequential `.use()` chaining, no path-prefix matching,
  * no 4-arg error handlers, no nested routers). Anything richer than that is
  * the consumer's own app, which we run as the last entry of the stack.
+ *
+ * Synchronous exceptions from a handler are caught and surfaced through
+ * `next()`, mirroring Express's `Layer.handle_request` so that a thrown
+ * error becomes a 500 response via `done(err)` instead of escaping to
+ * Node's request listener and aborting the test run.
  */
 
 function runChain(handlers: RequestHandler[], req: Request, res: Response, done: (err?: any) => void): void {
@@ -163,7 +168,11 @@ function runChain(handlers: RequestHandler[], req: Request, res: Response, done:
     const step = (err?: any) => {
         if (err) return done(err);
         if (i >= handlers.length) return done();
-        handlers[i++](req, res, step);
+        try {
+            handlers[i++](req, res, step);
+        } catch (e) {
+            step(e);
+        }
     };
     step();
 }

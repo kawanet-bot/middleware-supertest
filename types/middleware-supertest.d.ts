@@ -13,6 +13,16 @@ export interface MWSuperTest {
     /**
      * Mounts an additional middleware before the handler under test, scoped
      * to the agent built by this `MWSuperTest` instance.
+     *
+     * The middleware runs before the consumer-supplied app handles the
+     * request, so it sees the raw Node `IncomingMessage` / `ServerResponse`,
+     * not the Express-extended `Request` / `Response`. Use Node-standard
+     * APIs (`req.url`, `req.method`, `req.headers`, `res.statusCode`,
+     * `res.setHeader()`) here. Express extension methods such as
+     * `req.path`, `req.header()`, or `res.status()` will be undefined at
+     * this point. Note that the `getRequest()` / `getResponse()` checkers
+     * still see Express-extended objects, because by then the consumer's
+     * app has decorated them in place.
      */
     use(mw: RequestHandler): this;
 

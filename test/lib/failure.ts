@@ -17,9 +17,9 @@ export function runFailureTests(label: string, express: ExpressFactory): void {
         const app = express().use(handler);
 
         runCase("getString", mwsupertest(app).getString(async () => assert.ok(false, prefix + "getString")));
-        runCase("getBuffer", mwsupertest(app).getString(async () => assert.ok(false, prefix + "getBuffer")));
-        runCase("getResponse", mwsupertest(app).getString(async () => assert.ok(false, prefix + "getResponse")));
-        runCase("getRequest", mwsupertest(app).getString(async () => assert.ok(false, prefix + "getRequest")));
+        runCase("getBuffer", mwsupertest(app).getBuffer(async () => assert.ok(false, prefix + "getBuffer")));
+        runCase("getResponse", mwsupertest(app).getResponse(async () => assert.ok(false, prefix + "getResponse")));
+        runCase("getRequest", mwsupertest(app).getRequest(async () => assert.ok(false, prefix + "getRequest")));
 
         function runCase(title: string, testApp: MWSuperTest) {
             it(title, async () => {
