@@ -7,7 +7,6 @@ import {builtinModules} from "node:module"
 const externals = new Set<string>([
     ...builtinModules,
     ...builtinModules.map(m => `node:${m}`),
-    "express",
     "express-intercept",
     "supertest",
 ])

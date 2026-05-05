@@ -1,6 +1,5 @@
 // middleware-supertest.ts
 
-import express from "express";
 import type {Request, RequestHandler, Response} from "express";
 import {responseHandler} from "express-intercept";
 import supertest from "supertest";
@@ -15,7 +14,7 @@ export const mwsupertest: typeof types.mwsupertest = app => new MWSuperTest(app)
 
 class MWSuperTest implements types.MWSuperTest {
     private _agent: supertest.SuperTest<any>;
-    private handlers = express.Router();
+    private chain: RequestHandler[] = [];
     private readonly app: RequestHandler;
 
     constructor(app: RequestHandler) {
@@ -23,11 +22,38 @@ class MWSuperTest implements types.MWSuperTest {
     }
 
     private agent() {
-        return this._agent || (this._agent = supertest(express().use(this.handlers).use(this.app)));
+        if (this._agent) return this._agent;
+
+        // Compose the observation chain and the consumer-supplied app into a
+        // single RequestHandler that supertest can hand to http.createServer.
+        // We deliberately avoid calling `express()` or `express.Router()` here
+        // so that the runtime contract is just "any callable RequestHandler",
+        // which Express 4, Express 5, fastify-express, or a hand-written
+        // handler all satisfy. The version of Express used by the consumer
+        // never enters this module.
+        const stack: RequestHandler[] = [...this.chain, this.app];
+        const composed: RequestHandler = (req, res) => {
+            runChain(stack, req, res, (err?: any) => {
+                // Fallback when neither the chain nor the app produced a
+                // response. This mirrors the minimal behaviour of the
+                // `finalhandler` package that Express attaches when you call
+                // `app.listen()` (404 for unhandled, 500 for surfaced errors).
+                if (res.headersSent) return;
+                if (err) {
+                    res.statusCode = (err && err.status) || 500;
+                    res.end((err && err.message) || "Internal Server Error");
+                } else {
+                    res.statusCode = 404;
+                    res.end("Not Found");
+                }
+            });
+        };
+
+        return (this._agent = supertest(composed));
     }
 
     use(mw: RequestHandler): this {
-        this.handlers.use(mw);
+        this.chain.push(mw);
         this._agent = null;
         return this;
     }
@@ -111,6 +137,29 @@ class MWSuperTest implements types.MWSuperTest {
     put(url: string) {
         return wrapRequest(this.agent().put.apply(this.agent, arguments));
     }
+}
+
+/**
+ * @private
+ *
+ * Connect-style middleware runner. Iterates `handlers` in order, advancing
+ * to the next one each time a handler invokes the supplied `next` callback.
+ * Stops on the first error or when the list is exhausted, then calls `done`.
+ *
+ * This re-implements the slice of `express.Router()` semantics that mws
+ * actually relies on (sequential `.use()` chaining, no path-prefix matching,
+ * no 4-arg error handlers, no nested routers). Anything richer than that is
+ * the consumer's own app, which we run as the last entry of the stack.
+ */
+
+function runChain(handlers: RequestHandler[], req: Request, res: Response, done: (err?: any) => void): void {
+    let i = 0;
+    const step = (err?: any) => {
+        if (err) return done(err);
+        if (i >= handlers.length) return done();
+        handlers[i++](req, res, step);
+    };
+    step();
 }
 
 /**
