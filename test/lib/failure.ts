@@ -4,13 +4,13 @@ import type {RequestHandler} from "express";
 
 import {mwsupertest} from "../../lib/middleware-supertest.ts";
 import type {MWSuperTest} from "../../types/middleware-supertest.d.ts";
-import type {ExpressFactory} from "./util.ts";
+import type {ExpressModule} from "./util.ts";
 
 /**
  * This is a test to test mwsupertest to capture assertion thrown during mwsupertest.
  */
 
-export function runFailureTests(label: string, express: ExpressFactory): void {
+export function runFailureTests(label: string, express: ExpressModule): void {
     describe(`${label}: failure`, () => {
         const handler: RequestHandler = (req, res) => res.send("SUCCESS");
         const prefix = "something wrong with ";

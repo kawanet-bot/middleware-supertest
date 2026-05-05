@@ -2,9 +2,9 @@ import {describe, it} from "node:test";
 import type {RequestHandler} from "express";
 
 import {mwsupertest} from "../../lib/middleware-supertest.ts";
-import type {ExpressFactory} from "./util.ts";
+import type {ExpressModule} from "./util.ts";
 
-export function runMethodTests(label: string, express: ExpressFactory): void {
+export function runMethodTests(label: string, express: ExpressModule): void {
     describe(`${label}: method`, () => {
         const app = express();
 
@@ -14,11 +14,11 @@ export function runMethodTests(label: string, express: ExpressFactory): void {
         };
         app.use(handler);
 
-        app.head("/", (req: any, res: any) => res.send("HEAD"));
-        app.get("/", (req: any, res: any) => res.send("GET"));
-        app.post("/", (req: any, res: any) => res.send("POST"));
-        app.put("/", (req: any, res: any) => res.send("PUT"));
-        app.delete("/", (req: any, res: any) => res.send("DELETE"));
+        app.head("/", (req, res) => res.send("HEAD"));
+        app.get("/", (req, res) => res.send("GET"));
+        app.post("/", (req, res) => res.send("POST"));
+        app.put("/", (req, res) => res.send("PUT"));
+        app.delete("/", (req, res) => res.send("DELETE"));
 
         it("HEAD", async () => {
             await mwsupertest(app).head("/").expect("x-method", "HEAD");

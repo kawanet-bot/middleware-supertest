@@ -3,11 +3,11 @@ import {describe, it} from "node:test";
 import type {RequestHandler} from "express";
 
 import {mwsupertest} from "../../lib/middleware-supertest.ts";
-import type {ExpressFactory} from "./util.ts";
+import type {ExpressModule} from "./util.ts";
 
 const toHEX = (buf: Buffer) => Buffer.from(buf).toString("hex") || "(empty)";
 
-export function runBasicTests(label: string, express: ExpressFactory): void {
+export function runBasicTests(label: string, express: ExpressModule): void {
     describe(`${label}: basic`, () => {
         const handler: RequestHandler = (req, res) => {
             res.header("x-test", "response header");

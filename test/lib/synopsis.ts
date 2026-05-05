@@ -3,13 +3,13 @@ import {describe, it} from "node:test";
 import type {Request, Response} from "express";
 
 import {mwsupertest} from "../../lib/middleware-supertest.ts";
-import type {ExpressFactory} from "./util.ts";
+import type {ExpressModule} from "./util.ts";
 
 ////////////////////////////////////////////////
 
 // const {mwsupertest} = require("middleware-supertest");
 
-export function runSynopsisTests(label: string, express: ExpressFactory): void {
+export function runSynopsisTests(label: string, express: ExpressModule): void {
     const app = express();
 
     // your Express application
