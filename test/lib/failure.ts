@@ -3,7 +3,7 @@ import {describe, it} from "node:test";
 import type {RequestHandler} from "express";
 
 import {mwsupertest} from "../../lib/middleware-supertest.ts";
-import type {MWSuperTest} from "../../types/middleware-supertest.d.ts";
+import type {MWSuperTest} from "middleware-supertest";
 import type {ExpressModule} from "./util.ts";
 
 /**
