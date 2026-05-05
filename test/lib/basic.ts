@@ -1,12 +1,13 @@
 import {strict as assert} from "node:assert";
 import {describe, it} from "node:test";
-import type {Express, RequestHandler} from "express";
+import type {RequestHandler} from "express";
 
 import {mwsupertest} from "../../lib/middleware-supertest.ts";
+import type {ExpressModule} from "./util.ts";
 
 const toHEX = (buf: Buffer) => Buffer.from(buf).toString("hex") || "(empty)";
 
-export function runBasicTests(label: string, express: () => Express): void {
+export function runBasicTests(label: string, express: ExpressModule): void {
     describe(`${label}: basic`, () => {
         const handler: RequestHandler = (req, res) => {
             res.header("x-test", "response header");

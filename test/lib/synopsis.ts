@@ -1,14 +1,15 @@
 import {strict as assert} from "node:assert";
 import {describe, it} from "node:test";
-import type {Express, Request, Response} from "express";
+import type {Request, Response} from "express";
 
 import {mwsupertest} from "../../lib/middleware-supertest.ts";
+import type {ExpressModule} from "./util.ts";
 
 ////////////////////////////////////////////////
 
 // const {mwsupertest} = require("middleware-supertest");
 
-export function runSynopsisTests(label: string, express: () => Express): void {
+export function runSynopsisTests(label: string, express: ExpressModule): void {
     const app = express();
 
     // your Express application

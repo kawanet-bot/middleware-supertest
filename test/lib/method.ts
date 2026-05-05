@@ -1,9 +1,10 @@
 import {describe, it} from "node:test";
-import type {Express, RequestHandler} from "express";
+import type {RequestHandler} from "express";
 
 import {mwsupertest} from "../../lib/middleware-supertest.ts";
+import type {ExpressModule} from "./util.ts";
 
-export function runMethodTests(label: string, express: () => Express): void {
+export function runMethodTests(label: string, express: ExpressModule): void {
     describe(`${label}: method`, () => {
         const app = express();
 
