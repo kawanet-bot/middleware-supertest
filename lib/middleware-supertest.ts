@@ -1,7 +1,7 @@
 // middleware-supertest.ts
 
 import type {IncomingMessage, ServerResponse} from "node:http";
-import type {Request, RequestHandler, Response} from "express";
+import type {Express, Request, Response} from "express";
 import {responseHandler} from "express-intercept";
 import supertest from "supertest";
 import type * as types from "../types/middleware-supertest.d.ts";
@@ -15,10 +15,10 @@ export const mwsupertest: typeof types.mwsupertest = app => new MWSuperTest(app)
 
 class MWSuperTest implements types.MWSuperTest {
     private _agent: supertest.Agent;
-    private chain: RequestHandler[] = [];
-    private readonly app: RequestHandler;
+    private chain: types.NextHandleFunction[] = [];
+    private readonly app: Express;
 
-    constructor(app: RequestHandler) {
+    constructor(app: Express) {
         this.app = app;
     }
 
@@ -26,20 +26,21 @@ class MWSuperTest implements types.MWSuperTest {
         if (this._agent) return this._agent;
 
         // Compose the observation chain and the consumer-supplied app into a
-        // single RequestHandler that supertest can hand to http.createServer.
+        // single 2-arg listener that supertest can hand to http.createServer.
         // We deliberately avoid calling `express()` or `express.Router()` here
-        // so that the runtime contract is just "any callable RequestHandler",
-        // which Express 4, Express 5, fastify-express, or a hand-written
-        // handler all satisfy. The version of Express used by the consumer
-        // never enters this module.
-        const stack: RequestHandler[] = [...this.chain, this.app];
-        // supertest expects a 2-arg RequestListener (`(req, res) => void`),
-        // which is what `http.createServer` will hand us anyway. Internally
-        // we treat the same `req` / `res` as Express objects because the
-        // consumer's app — running as the last entry of the stack — is the
-        // one that decorates them with the Express prototype.
+        // so that the runtime contract is just "any callable Express app",
+        // which both Express 4 and Express 5 satisfy. The version of Express
+        // used by the consumer never enters this module at runtime.
+        const stack: types.NextHandleFunction[] = [...this.chain, this.app];
+        // The chain runs handlers against the raw Node objects supertest
+        // hands us via `http.createServer`. The consumer's Express app —
+        // running as the last entry of the stack — is the one that
+        // decorates `req` / `res` with the Express prototype in place,
+        // which is why the `getRequest()` / `getResponse()` checkers see
+        // Express-extended objects even though the chain itself is typed
+        // against the raw `IncomingMessage` / `ServerResponse`.
         const composed = (req: IncomingMessage, res: ServerResponse) => {
-            runChain(stack, req as Request, res as Response, (err?: any) => {
+            runChain(stack, req, res, (err?: any) => {
                 // Fallback when neither the chain nor the app produced a
                 // response. This mirrors the minimal behaviour of the
                 // `finalhandler` package that Express attaches when you call
@@ -58,7 +59,7 @@ class MWSuperTest implements types.MWSuperTest {
         return (this._agent = supertest(composed));
     }
 
-    use(mw: RequestHandler): this {
+    use(mw: types.NextHandleFunction): this {
         this.chain.push(mw);
         this._agent = null;
         return this;
@@ -163,7 +164,7 @@ class MWSuperTest implements types.MWSuperTest {
  * Node's request listener and aborting the test run.
  */
 
-function runChain(handlers: RequestHandler[], req: Request, res: Response, done: (err?: any) => void): void {
+function runChain(handlers: types.NextHandleFunction[], req: IncomingMessage, res: ServerResponse, done: (err?: any) => void): void {
     let i = 0;
     const step = (err?: any) => {
         if (err) return done(err);
